@@ -5,11 +5,20 @@ $(document).ready(function(){
         $('.error-message').remove();
         
         let errors = [];
+        // ДОБАВЛЕНО: собираем фамилию
+        let lastName = $('#last_name').val().trim(); 
         let name = $('#name').val().trim();
         let email = $('#email').val().trim();
         let password = $('#password').val();
         let password2 = $('#password2').val();
         
+        // ДОБАВЛЕНО: проверка фамилии
+        if(lastName === ''){
+            errors.push('Введите фамилию');
+            $('#last_name').css('border-color', 'red');
+        } else {
+            $('#last_name').css('border-color', '#ccc');
+        }
 
         if(name === ''){
             errors.push('Введите имя');
@@ -45,21 +54,21 @@ $(document).ready(function(){
             $('#password2').css('border-color', '#ccc');
         }
         
-
         if(errors.length > 0){
             showErrors(errors);
             return;
         }
         
-
         $.ajax({
             method: "POST",
             url: "/ajax/registr",
             contentType: "application/json",
             data: JSON.stringify({
                 name: name,
+                first_name: name,      // ДОБАВЛЕНО: отправляем имя
+                last_name: lastName,   // ДОБАВЛЕНО: отправляем фамилию
                 email: email,
-                password: password  // Отправляем обычный пароль, сервер сам его захэширует
+                password: password  
             }),
             beforeSend: function() {
                 $('button[type="submit"]').prop('disabled', true).text('Регистрация...');
@@ -67,7 +76,7 @@ $(document).ready(function(){
         })
         .done(function(response){
             if(response.code === 200){
-                alert('Регистрация успешна! ID: ' + response.id);
+                alert('Регистрация успешна!');
                 $('#registr_form')[0].reset();
                 setTimeout(function(){
                     window.location.href = '/login';
@@ -88,13 +97,11 @@ $(document).ready(function(){
         });
     });
     
-
     function isValidEmail(email) {
         var re = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
         return re.test(email);
     }
     
-
     function showErrors(errors) {
         $('.error-message').remove();
         errors.forEach(function(error) {
@@ -114,8 +121,7 @@ $(document).ready(function(){
         });
     }
     
-
-    $('#name, #email, #password, #password2').on('input', function(){
+    $('#last_name, #name, #email, #password, #password2').on('input', function(){
         $(this).css('border-color', '#ccc');
     });
 });

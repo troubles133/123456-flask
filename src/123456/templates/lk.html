@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Личный кабинет</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f4f4f4; padding: 20px; }
+        .container { max-width: 600px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        h2 { text-align: center; }
+        .info-block { background: #e9ecef; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
+        .info-block p { margin: 5px 0; font-size: 18px; }
+        .balance { font-size: 24px; color: green; font-weight: bold; }
+        .btn-group { display: flex; gap: 10px; }
+        button { flex: 1; padding: 10px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; }
+        .btn-trans { background: #ffc107; color: #000; }
+        .btn-ai { background: #007bff; color: #fff; }
+        button:hover { opacity: 0.9; }
+        #ai-response { margin-top: 20px; padding: 15px; border: 1px solid #007bff; border-radius: 5px; display: none; background: #e6f2ff; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Личный кабинет</h2>
+    
+    <div class="info-block">
+        <!-- Теперь выводим Имя и Фамилию -->
+        <p><strong>Пользователь:</strong> {{ user.last_name }} {{ user.first_name }} (Логин: {{ user.username }})</p>
+        <p><strong>Баланс:</strong> <span class="balance">{{ user.balance }} ₽</span></p>
+    </div>
+
+    <div class="btn-group">
+        <button class="btn-trans" onclick="doTransaction()">Транзакции</button>
+        <button class="btn-ai" onclick="callAI()">Запрос в нейросеть</button>
+    </div>
+
+    <div id="ai-response"></div>
+</div>
+
+<script>
+    function doTransaction() {
+        fetch('/ajax/transactions', { method: 'POST' })
+            .then(res => res.json())
+            .then(data => alert(data.message));
+    }
+
+    function callAI() {
+        const aiBox = document.getElementById('ai-response');
+        aiBox.style.display = 'block';
+        aiBox.innerHTML = 'Нейросеть думает... ⏳';
+
+        fetch('/ajax/ai_request', { method: 'POST' })
+            .then(res => res.json())
+            .then(data => {
+                if(data.code === 200) {
+                    aiBox.innerHTML = '<strong>Ответ:</strong><br>' + data.message;
+                } else {
+                    aiBox.innerHTML = 'Ошибка: ' + data.error;
+                }
+            });
+    }
+</script>
+
+</body>
+</html>
