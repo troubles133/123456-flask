@@ -13,14 +13,12 @@ try:
     )
     cursor = cnx.cursor()
 
-    # Пытаемся добавить first_name
     try:
         cursor.execute("ALTER TABLE users ADD COLUMN first_name VARCHAR(50) DEFAULT 'Имя'")
         print("✅ Колонка first_name добавлена")
     except Exception as e:
         print("ℹ️ first_name уже есть или ошибка:", e)
 
-    # Пытаемся добавить last_name
     try:
         cursor.execute("ALTER TABLE users ADD COLUMN last_name VARCHAR(50) DEFAULT 'Фамилия'")
         print("✅ Колонка last_name добавлена")

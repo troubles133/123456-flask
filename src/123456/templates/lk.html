@@ -4,62 +4,143 @@
     <meta charset="UTF-8">
     <title>Личный кабинет</title>
     <style>
-        body { font-family: Arial, sans-serif; background: #f4f4f4; padding: 20px; }
-        .container { max-width: 600px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-        h2 { text-align: center; }
+        body { font-family: Arial, sans-serif; background: #f4f4f4; padding: 20px; margin: 0; }
+        .container { max-width: 700px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 20px; }
+        .header h2 { margin: 0; }
+        .btn-logout { padding: 8px 15px; background: #dc3545; color: white; border: none; border-radius: 5px; cursor: pointer; text-decoration: none; font-size: 14px; }
+        .btn-logout:hover { background: #c82333; }
+
         .info-block { background: #e9ecef; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
-        .info-block p { margin: 5px 0; font-size: 18px; }
-        .balance { font-size: 24px; color: green; font-weight: bold; }
-        .btn-group { display: flex; gap: 10px; }
-        button { flex: 1; padding: 10px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; }
+        .info-block p { margin: 5px 0; font-size: 16px; }
+        .balance { font-size: 20px; color: green; font-weight: bold; }
+        
+        .action-buttons { display: flex; gap: 10px; margin-bottom: 20px; }
+        .btn-action { flex: 1; padding: 10px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; text-align: center; text-decoration: none; font-size: 16px; }
         .btn-trans { background: #ffc107; color: #000; }
-        .btn-ai { background: #007bff; color: #fff; }
-        button:hover { opacity: 0.9; }
-        #ai-response { margin-top: 20px; padding: 15px; border: 1px solid #007bff; border-radius: 5px; display: none; background: #e6f2ff; }
+        .btn-deposit { background: #28a745; color: #fff; }
+        
+        .chat-container { border: 1px solid #ccc; border-radius: 8px; padding: 15px; background: #fafafa; display: flex; flex-direction: column; height: 400px; }
+        .chat-messages { flex: 1; overflow-y: auto; margin-bottom: 10px; display: flex; flex-direction: column; gap: 10px; padding-right: 5px; }
+        
+        .message { padding: 10px 15px; border-radius: 15px; max-width: 80%; word-wrap: break-word; }
+        .message.user { background: #007bff; color: white; align-self: flex-end; border-bottom-right-radius: 2px; }
+        .message.ai { background: #e2e3e5; color: black; align-self: flex-start; border-bottom-left-radius: 2px; }
+        .message.error { background: #f8d7da; color: #721c24; align-self: center; font-size: 14px; }
+
+        .chat-input-group { display: flex; gap: 10px; }
+        .chat-input-group input { flex: 1; padding: 12px; border: 1px solid #ccc; border-radius: 5px; font-size: 16px; }
+        .chat-input-group button { padding: 12px 20px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        .chat-input-group button:hover { background: #0056b3; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>Личный кабинет</h2>
+    <div class="header">
+        <h2>Личный кабинет</h2>
+        <a href="/logout" class="btn-logout">Выйти</a>
+    </div>
     
     <div class="info-block">
-        <!-- Теперь выводим Имя и Фамилию -->
-        <p><strong>Пользователь:</strong> {{ user.last_name }} {{ user.first_name }} (Логин: {{ user.username }})</p>
-        <p><strong>Баланс:</strong> <span class="balance">{{ user.balance }} ₽</span></p>
+        <p><strong>Пользователь:</strong> {{ user.username }} (Email: {{ user.email }})</p>
+        <p><strong>Баланс:</strong> <span class="balance" id="user-balance">{{ user.balance }}</span> ₽</p>
     </div>
 
-    <div class="btn-group">
-        <button class="btn-trans" onclick="doTransaction()">Транзакции</button>
-        <button class="btn-ai" onclick="callAI()">Запрос в нейросеть</button>
+    <div class="action-buttons">
+        <a href="/transactions" class="btn-action btn-trans">Мои транзакции</a>
+        <button onclick="depositMoney()" class="btn-action btn-deposit">Пополнить на 100 ₽</button>
     </div>
 
-    <div id="ai-response"></div>
+    <h3>Чат с нейронкой (Llama)</h3>
+    <div class="chat-container">
+        <div class="chat-messages" id="chat-messages">
+            <div class="message ai">Привет! Я твой виртуальный помощник. Напиши мне что-нибудь!</div>
+        </div>
+        <div class="chat-input-group">
+            <input type="text" id="chat-input" placeholder="Введите сообщение..." onkeypress="handleKeyPress(event)">
+            <button onclick="sendMessage()">Отправить</button>
+        </div>
+    </div>
 </div>
 
 <script>
-    function doTransaction() {
-        fetch('/ajax/transactions', { method: 'POST' })
-            .then(res => res.json())
-            .then(data => alert(data.message));
+    function handleKeyPress(e) {
+        if (e.key === 'Enter') sendMessage();
     }
 
-    function callAI() {
-        const aiBox = document.getElementById('ai-response');
-        aiBox.style.display = 'block';
-        aiBox.innerHTML = 'Нейросеть думает... ⏳';
+    async function sendMessage() {
+        const input = document.getElementById('chat-input');
+        const text = input.value.trim();
+        if (!text) return;
 
-        fetch('/ajax/ai_request', { method: 'POST' })
-            .then(res => res.json())
-            .then(data => {
-                if(data.code === 200) {
-                    aiBox.innerHTML = '<strong>Ответ:</strong><br>' + data.message;
-                } else {
-                    aiBox.innerHTML = 'Ошибка: ' + data.error;
-                }
+        addMessage(text, 'user');
+        input.value = '';
+        const loadingId = addMessage('Нейросеть думает... ⏳', 'ai');
+
+        try {
+            const response = await fetch('/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: text })
             });
+
+            const data = await response.json();
+            document.getElementById(loadingId).remove();
+
+            if (data.reply) {
+                addMessage(data.reply, 'ai');
+                fetchBalance(); 
+            } else {
+                addMessage('Ошибка: ' + (data.error || 'Сервер не ответил'), 'error');
+            }
+        } catch (error) {
+            document.getElementById(loadingId).remove();
+            addMessage('Ошибка соединения с сервером', 'error');
+        }
+    }
+
+    function addMessage(text, type) {
+        const chatMessages = document.getElementById('chat-messages');
+        const msgDiv = document.createElement('div');
+        msgDiv.className = `message ${type}`;
+        const id = 'msg-' + Date.now() + Math.random().toString(36).substr(2, 9);
+        msgDiv.id = id;
+        msgDiv.textContent = text;
+        chatMessages.appendChild(msgDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        return id;
+    }
+
+    async function depositMoney() {
+        try {
+            const res = await fetch('/api/deposit', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'}
+            });
+            const data = await res.json();
+            
+            if(data.ok) {
+                document.getElementById('user-balance').textContent = data.new_balance;
+                alert('Баланс успешно пополнен на 100 ₽!');
+            } else {
+                alert('Ошибка: ' + data.error);
+            }
+        } catch(e) {
+            alert('Ошибка соединения с сервером');
+        }
+    }
+
+    async function fetchBalance() {
+        try {
+            const res = await fetch('/api/get_balance');
+            const data = await res.json();
+            if(data.balance !== undefined) {
+                document.getElementById('user-balance').textContent = data.balance;
+            }
+        } catch(e) { console.log('Ошибка обновления баланса'); }
     }
 </script>
-
 </body>
 </html>

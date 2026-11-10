@@ -2,13 +2,11 @@ $(document).ready(function(){
     $('#login_form').on('submit', function(e){
         e.preventDefault();
         
-        
         $('.error-message').remove();
         
         let email = $('#email').val().trim();
         let password = $('#password').val();
         let errors = [];
-        
         
         if(email === ''){
             errors.push('Введите email');
@@ -29,10 +27,9 @@ $(document).ready(function(){
             return;
         }
         
-        
         $.ajax({
             method: "POST",
-            url: "/ajax/login",
+            url: "/api/login", 
             contentType: "application/json",
             data: JSON.stringify({
                 email: email,
@@ -43,15 +40,20 @@ $(document).ready(function(){
             }
         })
         .done(function(response){
-            if(response.code === 200){
+            // Сервер возвращает {'id': ..., 'username': ...} при успехе
+            if(response.id){
                 alert('Добро пожаловать, ' + response.username + '!');
-                window.location.href = '/dashboard';
+                window.location.href = '/lk'; // Перекидываем в личный кабинет
             } else {
                 showErrors([response.error || 'Ошибка при входе']);
             }
         })
-        .fail(function() {
-            showErrors(['Ошибка сервера. Попробуйте позже.']);
+        .fail(function(xhr){
+            let errorMsg = 'Ошибка сервера';
+            if(xhr.responseJSON && xhr.responseJSON.error){
+                errorMsg = xhr.responseJSON.error;
+            }
+            showErrors([errorMsg]);
         })
         .always(function() {
             $('button[type="submit"]').prop('disabled', false).text('Войти');

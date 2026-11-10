@@ -5,27 +5,21 @@ $(document).ready(function(){
         $('.error-message').remove();
         
         let errors = [];
-        // ДОБАВЛЕНО: собираем фамилию
-        let lastName = $('#last_name').val().trim(); 
+        let lastName = $('#last_name').val() ? $('#last_name').val().trim() : '';
         let name = $('#name').val().trim();
         let email = $('#email').val().trim();
         let password = $('#password').val();
         let password2 = $('#password2').val();
         
-        // ДОБАВЛЕНО: проверка фамилии
         if(lastName === ''){
             errors.push('Введите фамилию');
             $('#last_name').css('border-color', 'red');
-        } else {
-            $('#last_name').css('border-color', '#ccc');
-        }
+        } else { $('#last_name').css('border-color', '#ccc'); }
 
         if(name === ''){
             errors.push('Введите имя');
             $('#name').css('border-color', 'red');
-        } else {
-            $('#name').css('border-color', '#ccc');
-        }
+        } else { $('#name').css('border-color', '#ccc'); }
         
         if(email === ''){
             errors.push('Введите email');
@@ -33,9 +27,7 @@ $(document).ready(function(){
         } else if(!isValidEmail(email)){
             errors.push('Введите корректный email');
             $('#email').css('border-color', 'red');
-        } else {
-            $('#email').css('border-color', '#ccc');
-        }
+        } else { $('#email').css('border-color', '#ccc'); }
         
         if(password === ''){
             errors.push('Введите пароль');
@@ -43,16 +35,12 @@ $(document).ready(function(){
         } else if(password.length < 6){
             errors.push('Пароль должен быть минимум 6 символов');
             $('#password').css('border-color', 'red');
-        } else {
-            $('#password').css('border-color', '#ccc');
-        }
+        } else { $('#password').css('border-color', '#ccc'); }
         
         if(password !== password2){
             errors.push('Пароли не совпадают');
             $('#password2').css('border-color', 'red');
-        } else {
-            $('#password2').css('border-color', '#ccc');
-        }
+        } else { $('#password2').css('border-color', '#ccc'); }
         
         if(errors.length > 0){
             showErrors(errors);
@@ -61,12 +49,12 @@ $(document).ready(function(){
         
         $.ajax({
             method: "POST",
-            url: "/ajax/registr",
+            url: "/api/user_register",
             contentType: "application/json",
             data: JSON.stringify({
                 name: name,
-                first_name: name,      // ДОБАВЛЕНО: отправляем имя
-                last_name: lastName,   // ДОБАВЛЕНО: отправляем фамилию
+                first_name: name,      
+                last_name: lastName,   
                 email: email,
                 password: password  
             }),
@@ -75,8 +63,8 @@ $(document).ready(function(){
             }
         })
         .done(function(response){
-            if(response.code === 200){
-                alert('Регистрация успешна!');
+            if(response.ok || response.code === 200){
+                alert('Регистрация успешна! Теперь войдите.');
                 $('#registr_form')[0].reset();
                 setTimeout(function(){
                     window.location.href = '/login';

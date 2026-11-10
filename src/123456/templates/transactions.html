@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>История транзакций</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f4f4f4; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 20px; }
+        h2 { margin: 0; }
+        .balance-badge { background: #28a745; color: white; padding: 5px 15px; border-radius: 20px; font-weight: bold; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background-color: #f8f9fa; }
+        .amount-positive { color: green; font-weight: bold; }
+        .amount-negative { color: red; font-weight: bold; }
+        .back-link { display: inline-block; margin-top: 20px; text-decoration: none; color: #007bff; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>История операций</h2>
+            <div class="balance-badge">Баланс: {{ balance }} ₽</div>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Дата и время</th>
+                    <th>Описание</th>
+                    <th>Сумма</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for t in transactions %}
+                <tr>
+                    <!-- Форматируем дату -->
+                    <td>{{ t.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
+                    <td>{{ t.description }}</td>
+                    <td class="{% if t.amount > 0 %}amount-positive{% else %}amount-negative{% endif %}">
+                        {% if t.amount > 0 %}+{% endif %}{{ t.amount }} ₽
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="3" style="text-align: center; color: #777;">Транзакций пока нет. Отправьте запрос в нейросеть, чтобы списать 10 ₽.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <a href="/lk" class="back-link">← Вернуться в личный кабинет</a>
+    </div>
+</body>
+</html>
